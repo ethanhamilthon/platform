@@ -37,8 +37,8 @@ func New() *Service {
 }
 
 type LaunchData struct {
-	Email  string `json:"email"`
-	Domain string `json:"domain"`
+	Email   string   `json:"email"`
+	Domains []string `json:"domains"`
 }
 
 func (s *Service) LaunchHttp(data []byte) ([]byte, error) {
@@ -67,12 +67,11 @@ func (s *Service) LaunchHttps(data []byte) ([]byte, error) {
 	certmagic.DefaultACME.DisableHTTPChallenge = true
 	certmagic.DefaultACME.Email = body.Email
 	certmagic.Default.Storage = &certmagic.FileStorage{Path: "/certs/storage"}
-	domains := []string{body.Domain}
 
 	// Start server
 	router := mux.NewRouter()
 	router.PathPrefix("/").HandlerFunc(s.Proxy)
-	go log.Fatal(certmagic.HTTPS(domains, router))
+	go log.Fatal(certmagic.HTTPS(body.Domains, router))
 
 	return utils.Success()
 }

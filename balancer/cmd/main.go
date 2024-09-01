@@ -11,7 +11,8 @@ func main() {
 
 	msg.AddSubs("balancer:launch:http", service.LaunchHttp)
 	msg.AddSubs("balancer:launch:https", service.LaunchHttps)
-	msg.AddSubs("balancer:add:domain", service.AddApp)
+	msg.AddSubs("balancer:add:app", service.AddApp)
+	// Todo: implement add domains
 	msg.AddSubs("balancer:remove:app", service.RemoveApp)
 	msg.AddSubs("balancer:change:container", service.ChangeContainer)
 
