@@ -51,7 +51,7 @@ func (s *Services) RunHttps(domain, email string) error {
 	if err != nil {
 		return err
 	}
-	body, err := s.broker.Request("balancer:launch:http", data)
+	body, err := s.broker.Request("balancer:launch:https", data)
 	if err != nil {
 		return err
 	}
