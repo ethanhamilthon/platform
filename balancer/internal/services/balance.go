@@ -9,9 +9,9 @@ import (
 
 type AddAppBody struct {
 	Domain    string `json:"domain"`
-	Container string `json:"container"`
+	Container string `json:"name"`
 	Port      string `json:"port"`
-	Path      string `json:"path"`
+	Path      string `json:"path_prefix"`
 }
 
 func (s *Service) AddApp(data []byte) ([]byte, error) {
@@ -107,26 +107,58 @@ func (s *Service) RemoveApp(data []byte) ([]byte, error) {
 	return utils.Success()
 }
 
+// TODO: add cache to get service url
 // Returns an url to service in docker network by domain name and path
 func (s *Service) getServiceUrl(host string, path string) (string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	var matchedApp *AppType
-	var longestMatch int
+
+	matchedApp := new(AppType)
+	longestMatch := -1 // longest match
+	longestSuffix := -1
+	domainFound := false
+
 	for _, dom := range s.domains {
-		if dom.Domain == host {
-			for _, app := range dom.Apps {
-				if strings.HasPrefix(path, app.Path) {
-					if len(app.Path) > longestMatch {
-						longestMatch = len(app.Path)
-						matchedApp = &app
+		if dom.Domain != host {
+			continue
+		}
+
+		domainFound = true
+
+		for _, app := range dom.Apps {
+			if !strings.HasPrefix(path, app.Path) {
+				continue
+			}
+			if len(app.Path) < longestMatch {
+				continue
+			}
+			longestMatch = len(app.Path)
+			matchedApp = &app
+		}
+
+	}
+
+	if !domainFound {
+		for _, v := range s.domains {
+			after, found := strings.CutPrefix(v.Domain, "*")
+			if !found {
+				continue
+			}
+			if len(after) > longestSuffix && strings.HasSuffix(host, after) {
+				longestSuffix = len(after)
+				for _, app := range v.Apps {
+					if strings.HasPrefix(path, app.Path) {
+						if len(app.Path) >= longestMatch {
+							longestMatch = len(app.Path)
+							matchedApp = &app
+						}
 					}
 				}
 			}
 		}
 	}
 
-	if matchedApp == nil {
+	if matchedApp == nil || longestMatch == -1 || matchedApp.ContainerName == "" {
 		return "", errors.New("not found")
 	}
 	return "http://" + matchedApp.ContainerName + ":" + matchedApp.Port, nil

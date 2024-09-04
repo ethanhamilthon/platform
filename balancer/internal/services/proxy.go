@@ -1,6 +1,7 @@
 package services
 
 import (
+	"balancer/config"
 	"io"
 	"net/http"
 	"net/url"
@@ -10,6 +11,18 @@ import (
 
 // Defines who should process the request
 func (s *Service) Proxy(w http.ResponseWriter, r *http.Request) {
+	// If we are testing we do not proxy
+	if config.IsTesting() {
+		url, err := s.getServiceUrl(r.Host, r.URL.Path)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(url))
+		return
+	}
 	if websocket.IsWebSocketUpgrade(r) {
 		s.wsProxy(w, r)
 	} else {
@@ -21,7 +34,7 @@ func (s *Service) Proxy(w http.ResponseWriter, r *http.Request) {
 func (s *Service) httpProxy(w http.ResponseWriter, r *http.Request) {
 	proxyUrl, err := s.getServiceUrl(r.Host, r.URL.Path)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(404)
 		w.Write([]byte(err.Error()))
 		return
 	}

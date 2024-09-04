@@ -22,7 +22,7 @@ export default class NatsMessage {
   // addsub adds new subscriber to the topic, callback can return data to response or null
   addSub(
     topic: string,
-    callback: (err: NatsError | null, msg: string) => Promise<string | void>
+    callback: (err: NatsError | null, msg: string) => Promise<string | void>,
   ) {
     if (!this._nc) {
       throw new Error("Not connected to NATS");
@@ -59,14 +59,16 @@ export default class NatsMessage {
     if (!this._nc) {
       throw new Error("Not connected to NATS");
     }
-    const reply = await this._nc.request(topic, JSON.stringify(data));
+    const reply = await this._nc.request(topic, JSON.stringify(data), {
+      timeout: 10000,
+    });
     return this._decoder.decode(reply.data);
   };
 
   errorHandler(cb: (message: string) => Promise<string | void>) {
     return async (
       err: NatsError | null,
-      msg: string
+      msg: string,
     ): Promise<string | void> => {
       if (err !== null) {
         this.publish("adapter:error", err);

@@ -1,7 +1,8 @@
+import { writeAll } from "nats/lib/nats-base-client/denobuffer";
 import NatsMessage from "./message";
 import { DockerAdapter } from "./services/docker";
 
-async function main() {
+async function main(options: { nats?: string }) {
   const docker = new DockerAdapter();
   const nc = new NatsMessage();
   await nc.connect("nats://localhost:4222");
@@ -17,3 +18,7 @@ async function main() {
 }
 
 main();
+
+function getEnv(env: string, defaultValue: string) {
+  return process.env[env] ?? defaultValue;
+}

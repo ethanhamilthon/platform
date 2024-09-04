@@ -7,7 +7,7 @@ export class DockerAdapter {
   constructor() {
     this.client = new DockerSDK();
   }
-  
+
   // creates new container with existing image, be sure that image is pulled. It returns id of container
   createContainer = async (data: string) => {
     const info = CreateContainerSchema.parse(JSON.parse(data));
@@ -17,7 +17,7 @@ export class DockerAdapter {
     });
     return container.id;
   };
-  
+
   // Runs container with id
   runContainer = async (data: string) => {
     const info = RunContainerSchema.parse(JSON.parse(data));

@@ -3,6 +3,7 @@ package message
 import (
 	"balancer/internal/utils"
 	"log"
+	"time"
 
 	"github.com/nats-io/nats.go"
 )
@@ -19,6 +20,18 @@ func New(addr string) *Message {
 	return &Message{
 		client: nc,
 	}
+}
+
+func (m *Message) Close() {
+	m.client.Close()
+}
+
+func (m *Message) Request(topic string, data []byte) (*nats.Msg, error) {
+	return m.client.Request(topic, data, 10*time.Second)
+}
+
+func (m *Message) Publish(topic string, data []byte) error {
+	return m.client.Publish(topic, data)
 }
 
 // Adds new subscriber to NATS server

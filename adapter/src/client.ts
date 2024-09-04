@@ -6,20 +6,9 @@ async function main() {
 
   await nc.connect("nats://localhost:4222");
 
-  const id = await nc.request(
-    "adapter:docker:create-container",
-    JSON.stringify({
-      image_name: "redis",
-      container_name: "myredis",
-    }),
-  );
+  const body = await nc.request("balancer:launch:http", "");
 
-  nc.publish(
-    "adapter:docker:run-container",
-    JSON.stringify({
-      id: id,
-    }),
-  );
+  console.log(body);
 }
 
 main();

@@ -4,11 +4,14 @@ import (
 	"balancer/config"
 	"balancer/internal/message"
 	"balancer/internal/services"
+	"fmt"
 )
 
 func Start() {
+	config.Init()
 	service := services.New()
 	msg := message.New(config.NatsUrl)
+	fmt.Println(config.HttpTopic)
 	msg.AddSubs(config.HttpTopic, service.LaunchHttp)
 	msg.AddSubs(config.HttpsTopic, service.LaunchHttps)
 	msg.AddSubs(config.AddAppTopic, service.AddApp)
