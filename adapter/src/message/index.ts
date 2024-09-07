@@ -1,4 +1,4 @@
-import { connect, NatsConnection, StringCodec, Codec, NatsError } from "nats";
+import { connect, NatsConnection, StringCodec, Codec, NatsError, ConnectionOptions } from "nats";
 
 export default class NatsMessage {
   private _nc: NatsConnection | null = null;
@@ -9,9 +9,11 @@ export default class NatsMessage {
   }
 
   // connect creates new connection to nats server
-  connect = async (addr: string) => {
+  connect = async (addr?: string | null, opts?: ConnectionOptions) => {
     try {
-      this._nc = await connect({ servers: addr });
+      const options = addr? { servers: addr } : opts;
+
+      this._nc = await connect(options);
       console.log("Connected to NATS");
     } catch (error) {
       console.error("Failed to connect to NATS:", error);
